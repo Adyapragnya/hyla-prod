@@ -50,7 +50,7 @@ const PieChartComponent = ({ data }) => {
   
       {/* Wrap the chart and legends together */}
       <div ref={chartRef} className="chart-container">
-        <div className="pie-chart-container" style={{ marginTop: "-90px" }}>
+        <div className="pie-chart-container">
           <PieChart width={400} height={400}> {/* Increased width and height */}
             <Pie
               data={data}
