@@ -28,7 +28,12 @@ const [selectedFieldType, setSelectedFieldType] = useState('');
 const [customData, setCustomData] = useState({ data: '' }); // For custom data entry
 const [customDocuments, setCustomDocuments] = useState([]);
 const { role,id} = useContext(AuthContext); 
-const [loading,setLoading] = useState(false);
+
+
+const [openDeleteModal, setOpenDeleteModal] = useState(false);
+const [vesselToDelete, setVesselToDelete] = useState('');
+
+
 const mongoFieldTypes = [
   { value: 'String', label: 'String' },
   { value: 'Number', label: 'Number' },
@@ -67,7 +72,6 @@ useEffect(() => {
 
   useEffect(() => {
     const fetchVessels = async () => {
-      setLoading(true);
       try {
         const baseURL = process.env.REACT_APP_API_BASE_URL;
         const response = await axios.get(`${baseURL}/api/get-tracked-vessels`);
@@ -116,31 +120,24 @@ useEffect(() => {
         console.error('Error fetching tracked vessels:', error);
         setError(error.message);
       }
-      finally {
-        setLoading(false); // End loading
-      }
     };
   
     fetchVessels();
   }, [role, id]);
 
-  if (loading) {
-    <div>Loading...</div>; // Show loading message
-  }
-
   const [columns, setColumns] = useState([
-    { name: 'select', header: '', defaultWidth: 50, headerAlign: 'center', align: 'center', flex: 0.2,
-      render: ({ data }) => (
-        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-          <input 
-            type="checkbox" 
-            checked={data.selected} 
-            onChange={() => handleRowSelection(data)} 
-            style={{ width: '20px', height: '20px' }}
-          />
-        </div>
-      ),
-    },
+    // { name: 'select', header: '', defaultWidth: 50, headerAlign: 'center', align: 'center', flex: 0.2,
+    //   render: ({ data }) => (
+    //     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+    //       <input 
+    //         type="checkbox" 
+    //         checked={data.selected} 
+    //         onChange={() => handleRowSelection(data)} 
+    //         style={{ width: '20px', height: '20px' }}
+    //       />
+    //     </div>
+    //   ),
+    // },
     { name: 'NAME', header: 'Name', minWidth: 200, flex: 2 },
     { name: 'TYPE', header: 'Type', minWidth: 200, flex: 2 },
     { name: 'IMO', header: 'IMO', minWidth: 200, flex: 2 },
@@ -231,50 +228,51 @@ useEffect(() => {
     setSelectedRows(newSelectedRows.map(vessel => vessel.IMO));
   };
 
-  const handleDeleteSelected = async () => {
-    const result = await Swal.fire({
-      title: 'Are you sure?',
-      text: "Do you want to delete selected vessels from tracking?",
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonColor: '#d33',
-      cancelButtonColor: '#3085d6',
-      confirmButtonText: 'Yes, delete it!',
-      customClass: {
-        popup: 'custom-swal',
-      },
-    });
+  const handleOpenDeleteModal = () => {
+    setOpenDeleteModal(true);
+    setVesselToDelete(''); // Reset selection
+  };
+  
+ const handleDeleteSelectedVessel = async () => {
+  setOpenDeleteModal(false); // Close the modal after deletion
+  const result = await Swal.fire({
+    title: 'Are you sure?',
+    text: `Do you want to delete vessel with IMO ${vesselToDelete}?`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#d33',
+    cancelButtonColor: '#3085d6',
+    confirmButtonText: 'Yes, delete it!',
+    customClass: {
+      popup: 'custom-swal', // Add a custom class
+    },
+  });
 
-    if (result.isConfirmed) {
-      const baseURL = process.env.REACT_APP_API_BASE_URL;
+  if (result.isConfirmed) {
+    const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-      try {
-        await Promise.all(
-          selectedRows.map(async (imo) => {
-            await axios.patch(`${baseURL}/api/delete-vessel`, {
-              imoNumber: imo,
-              trackingFlag: false, // Set trackingFlag to false
-            });
-          })
-        );
-
-        const updatedVessels = vessels.filter(vessel => !vessel.selected);
-        setVessels(updatedVessels);
-        setSelectedRows([]); // Clear selected rows
-
-        Swal.fire('Deleted!', 'Your selected vessels have been deleted.', 'success').then(() => {
-          // Refresh the page
-          location.reload();
+    try {
+      await axios.patch(`${baseURL}/api/delete-vessel`, {
+        imoNumber: vesselToDelete,
+        trackingFlag: false, // Set trackingFlag to false
       });
 
-      } catch (error) {
-        console.error('Error updating vessels:', error);
-        Swal.fire('Error!', 'There was an error deleting the vessels.', 'error');
-      }
+      // Update state to remove the deleted vessel
+      setVessels(vessels.filter(vessel => vessel.IMO !== vesselToDelete));
+      Swal.fire('Deleted!', 'The vessel has been deleted.', 'success');
+      
+    } catch (error) {
+      console.error('Error deleting vessel:', error);
+      Swal.fire('Error!', 'There was an error deleting the vessel.', 'error');
     }
-  };
+   
+  }
+};
 
- 
+  
+
+
+
   const csvHeaders = columns.map(c => ({ label: c.header, key: c.name }));
   const csvData = filteredVessels;
 
@@ -409,15 +407,20 @@ useEffect(() => {
     <div>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <div>
-          <Button
-            variant="contained"
-            color="primary"
-            onClick={handleDeleteSelected}
-            startIcon={<DeleteIcon />}
-            disabled={selectedRows.length === 0}
-          >
-            Delete
-          </Button>
+        <Button
+  variant="contained"
+  color="primary"
+  onClick={handleOpenDeleteModal} // Open modal on click
+  style={{ 
+   
+    color: 'white',
+   
+  }}
+  startIcon={<DeleteIcon />}
+>
+  Delete
+</Button>
+
           <Button
             aria-controls={exportAnchorEl ? 'export-menu' : undefined}
             aria-haspopup="true"
@@ -500,6 +503,32 @@ useEffect(() => {
   onRowClick={handleRowClick}
   highlightRow={highlightRow}
 />
+
+<Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)} maxWidth="sm" fullWidth>
+  <DialogTitle>Select Vessel to delete</DialogTitle>
+  <DialogContent>
+    <FormControl fullWidth margin="dense">
+      {/* <Typography variant="body1" style={{ marginBottom: '4px' }}>Select Vessel</Typography> */}
+      <Select
+        value={vesselToDelete}
+        onChange={(event) => setVesselToDelete(event.target.value)}
+        displayEmpty
+        variant="outlined"
+      >
+        <MenuItem value="" disabled>Select a vessel</MenuItem>
+        {vessels.map(vessel => (
+          <MenuItem key={vessel.IMO} value={vessel.IMO}>
+            {vessel.NAME}
+          </MenuItem>
+        ))}
+      </Select>
+    </FormControl>
+  </DialogContent>
+  <DialogActions>
+    <Button onClick={() => setOpenDeleteModal(false)} color="primary">Cancel</Button>
+    <Button onClick={handleDeleteSelectedVessel} color="primary">Delete</Button>
+  </DialogActions>
+</Dialog>
 
 
 <Dialog open={openModal1} onClose={handleCloseModal1} maxWidth="sm" fullWidth>
@@ -635,7 +664,7 @@ useEffect(() => {
 };
 
 VesselDetailsTable.propTypes = {
-  highlightRow: PropTypes.bool.isRequired,
+  highlightRow: PropTypes.string.isRequired,
   onRowClick: PropTypes.func.isRequired,
 };
 
