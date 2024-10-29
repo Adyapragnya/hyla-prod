@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import ReactDataGrid from '@inovua/reactdatagrid-community';
 import '@inovua/reactdatagrid-community/index.css';
 import axios from 'axios';
-import {ListItemText, Checkbox, Select, Typography, Button, Menu, MenuItem, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl,InputLabel } from '@mui/material';
+import {ListItemText, Checkbox, Select, Typography, Button, Menu, MenuItem, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl,InputLabel,Autocomplete } from '@mui/material';
 import Swal from 'sweetalert2';
 import { CSVLink } from 'react-csv';
 import jsPDF from 'jspdf';
@@ -31,7 +31,11 @@ const { role,id} = useContext(AuthContext);
 
 
 const [openDeleteModal, setOpenDeleteModal] = useState(false);
-const [vesselToDelete, setVesselToDelete] = useState('');
+const [vesselToDelete, setVesselToDelete] = useState([]);
+const [open, setOpen] = useState(false);
+
+const handleOpen = () => setOpen(true);
+const handleClose = () => setOpen(false);
 
 
 const mongoFieldTypes = [
@@ -177,7 +181,7 @@ useEffect(() => {
   }, []);
   
   
-
+  
   const isNewVessel = (vessel) => {
     const oneMinuteAgo = new Date(Date.now() - 60000);
     return new Date(vessel.timestamp) > oneMinuteAgo;
@@ -227,47 +231,46 @@ useEffect(() => {
     const newSelectedRows = updatedVessels.filter(vessel => vessel.selected);
     setSelectedRows(newSelectedRows.map(vessel => vessel.IMO));
   };
-
+  
   const handleOpenDeleteModal = () => {
     setOpenDeleteModal(true);
     setVesselToDelete(''); // Reset selection
   };
   
- const handleDeleteSelectedVessel = async () => {
-  setOpenDeleteModal(false); // Close the modal after deletion
-  const result = await Swal.fire({
-    title: 'Are you sure?',
-    text: `Do you want to delete vessel with IMO ${vesselToDelete}?`,
-    icon: 'warning',
-    showCancelButton: true,
-    confirmButtonColor: '#d33',
-    cancelButtonColor: '#3085d6',
-    confirmButtonText: 'Yes, delete it!',
-    customClass: {
-      popup: 'custom-swal', // Add a custom class
-    },
-  });
+  const handleDeleteSelectedVessel = async () => {
+    setOpenDeleteModal(false); // Close the modal after deletion
+    const result = await Swal.fire({
+      title: 'Are you sure?',
+      text: `Do you want to delete vessel(s) with IMO ${vesselToDelete.join(", ")}?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+      customClass: {
+        popup: 'custom-swal',
+      },
+    });
 
-  if (result.isConfirmed) {
-    const baseURL = process.env.REACT_APP_API_BASE_URL;
+    if (result.isConfirmed) {
+      const baseURL = process.env.REACT_APP_API_BASE_URL;
 
-    try {
-      await axios.patch(`${baseURL}/api/delete-vessel`, {
-        imoNumber: vesselToDelete,
-        trackingFlag: false, // Set trackingFlag to false
-      });
+      try {
+        await axios.patch(`${baseURL}/api/delete-vessel`, {
+          imoNumbers: vesselToDelete, // Send array of IMOs
+          
+        });
 
-      // Update state to remove the deleted vessel
-      setVessels(vessels.filter(vessel => vessel.IMO !== vesselToDelete));
-      Swal.fire('Deleted!', 'The vessel has been deleted.', 'success');
-      
-    } catch (error) {
-      console.error('Error deleting vessel:', error);
-      Swal.fire('Error!', 'There was an error deleting the vessel.', 'error');
+        // Update state to remove the deleted vessels
+        setVessels(vessels.filter(vessel => !vesselToDelete.includes(vessel.IMO)));
+        Swal.fire('Deleted!', 'The vessel(s) have been deleted.', 'success');
+        
+      } catch (error) {
+        console.error('Error deleting vessel:', error);
+        Swal.fire('Error!', 'There was an error deleting the vessel.', 'error');
+      }
     }
-   
-  }
-};
+  };
 
   
 
@@ -507,22 +510,46 @@ useEffect(() => {
 <Dialog open={openDeleteModal} onClose={() => setOpenDeleteModal(false)} maxWidth="sm" fullWidth>
   <DialogTitle>Select Vessel to delete</DialogTitle>
   <DialogContent>
-    <FormControl fullWidth margin="dense">
-      {/* <Typography variant="body1" style={{ marginBottom: '4px' }}>Select Vessel</Typography> */}
-      <Select
-        value={vesselToDelete}
-        onChange={(event) => setVesselToDelete(event.target.value)}
-        displayEmpty
-        variant="outlined"
-      >
-        <MenuItem value="" disabled>Select a vessel</MenuItem>
-        {vessels.map(vessel => (
-          <MenuItem key={vessel.IMO} value={vessel.IMO}>
-            {vessel.NAME}
-          </MenuItem>
-        ))}
-      </Select>
-    </FormControl>
+  {/* <FormControl fullWidth margin="dense">
+  <Select
+    value={vesselToDelete}
+    onChange={(event) => setVesselToDelete(event.target.value)}
+    displayEmpty
+    variant="outlined"
+    fullWidth // Ensure the full width of the select is clickable
+    style={{ cursor: 'pointer' }} // Set cursor style for entire select area
+  >
+    <MenuItem value="" disabled style={{ width: '100%' }}>Select a vessel</MenuItem>
+    {vessels.map((vessel) => (
+      <MenuItem key={vessel.IMO} value={vessel.IMO} style={{ width: '100%' }}>
+        {vessel.NAME}
+      </MenuItem>
+    ))}
+  </Select>
+</FormControl> */}
+
+<FormControl fullWidth margin="dense">
+        <Autocomplete
+          multiple
+          options={vessels} // Array of vessel objects
+          getOptionLabel={(option) => option.NAME} // Display vessel name in options
+          value={vessels.filter(vessel => vesselToDelete.includes(vessel.IMO))} // Filter to get the selected vessels
+          onChange={(event, newValue) => {
+            // Set only the IMO values from the selected vessels
+            const imoValues = newValue.map(vessel => vessel.IMO);
+            setVesselToDelete(imoValues);
+          }} // Update state with selected IMO values
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              variant="outlined"
+              placeholder="Select vessels"
+            />
+          )}
+        />
+      </FormControl>
+    
+
   </DialogContent>
   <DialogActions>
     <Button onClick={() => setOpenDeleteModal(false)} color="primary">Cancel</Button>

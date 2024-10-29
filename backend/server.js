@@ -545,23 +545,27 @@ app.get('/api/get-tracked-vessels', async (req, res) => {
 });
 
 app.patch('/api/delete-vessel', async (req, res) => {
-    const { imoNumber } = req.body;
+  const { imoNumbers } = req.body; // Change this to imoNumbers
+  console.log(req.body);
 
-    try {
-        // Find the vessel by IMO number and delete it
-        const deletedVessel = await TrackedVessel.findOneAndDelete(
-            { 'AIS.IMO': imoNumber }
-        );
+  try {
+      // Check if imoNumbers is an array
+      if (!Array.isArray(imoNumbers) || imoNumbers.length === 0) {
+          return res.status(400).json({ message: 'Invalid or missing IMO numbers' });
+      }
 
-        if (!deletedVessel) {
-            return res.status(404).json({ message: 'Vessel not found' });
-        }
+      // Find and delete vessels by IMO number using $in
+      const deletedVessels = await TrackedVessel.deleteMany({ 'AIS.IMO': { $in: imoNumbers } });
 
-        res.status(200).json({ message: 'Vessel deleted successfully', vessel: deletedVessel });
-    } catch (error) {
-        console.error("Error deleting vessel:", error);
-        res.status(500).json({ message: 'Server error' });
-    }
+      if (deletedVessels.deletedCount === 0) {
+          return res.status(404).json({ message: 'No vessels found with the provided IMO numbers' });
+      }
+
+      res.status(200).json({ message: 'Vessel(s) deleted successfully', deletedCount: deletedVessels.deletedCount });
+  } catch (error) {
+      console.error("Error deleting vessel:", error);
+      res.status(500).json({ message: 'Server error' });
+  }
 });
 
 
