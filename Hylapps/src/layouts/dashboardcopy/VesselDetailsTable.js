@@ -3,13 +3,14 @@ import PropTypes from 'prop-types';
 import ReactDataGrid from '@inovua/reactdatagrid-community';
 import '@inovua/reactdatagrid-community/index.css';
 import axios from 'axios';
-import {ListItemText, Checkbox, Select, Typography, Button, Menu, MenuItem, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl,InputLabel,Autocomplete } from '@mui/material';
+import {ListItemText, Checkbox, Select, Typography, Button, Menu, MenuItem, Box, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControl,InputLabel,Autocomplete,ButtonGroup,Tooltip } from '@mui/material';
 import Swal from 'sweetalert2';
 import { CSVLink } from 'react-csv';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import DeleteIcon from '@mui/icons-material/Delete';
 import './Swal.css';
+import { useMediaQuery } from '@mui/material'; // Ensure this is included
 import { AuthContext } from "../../AuthContext";
 
 const VesselDetailsTable = ({ highlightRow, onRowClick }) => {
@@ -33,6 +34,10 @@ const { role,id} = useContext(AuthContext);
 const [openDeleteModal, setOpenDeleteModal] = useState(false);
 const [vesselToDelete, setVesselToDelete] = useState([]);
 const [open, setOpen] = useState(false);
+
+  // Define isMobile here
+  const isMobile = useMediaQuery('(max-width:600px)'); // Adjust the breakpoint as needed
+
 
 const handleOpen = () => setOpen(true);
 const handleClose = () => setOpen(false);
@@ -272,9 +277,6 @@ useEffect(() => {
     }
   };
 
-  
-
-
 
   const csvHeaders = columns.map(c => ({ label: c.header, key: c.name }));
   const csvData = filteredVessels;
@@ -401,57 +403,76 @@ useEffect(() => {
   };
   
   
-  
-  
-
-  
-
   return (
     <div>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
         <div>
+        <ButtonGroup
+      variant="contained"
+      aria-label="button group"
+      orientation={isMobile ? 'vertical' : 'horizontal'} // Stack buttons vertically on mobile
+      style={{
+        display: 'flex',
+        flexDirection: isMobile ? 'column' : 'row',
+        margin: 0, // Remove margin around the ButtonGroup
+        borderRadius: '0', // Remove border radius for ButtonGroup
+        overflow: 'hidden', // Ensures the buttons fill the group area
+      }}
+    >
+      <Tooltip title={<span style={{ color: 'white' }}>Delete</span>} arrow>
         <Button
-  variant="contained"
-  color="primary"
-  onClick={handleOpenDeleteModal} // Open modal on click
-  style={{ 
-   
-    color: 'white',
-   
-  }}
-  startIcon={<DeleteIcon />}
->
-  Delete
-</Button>
+          color="primary"
+          onClick={handleOpenDeleteModal} // Open modal on click
+          style={{ 
+            color: 'white', 
+            margin: 0, 
+            borderRadius: '5px', // Set border radius to 5px for each button
+            flex: 1 
+          }} 
+        >
+          <i className='fa-solid fa-trash'></i>
+        </Button>
+      </Tooltip>
+      &nbsp;
 
-          <Button
-            aria-controls={exportAnchorEl ? 'export-menu' : undefined}
-            aria-haspopup="true"
-            onClick={event => setExportAnchorEl(event.currentTarget)}
-            style={{ 
-              marginLeft: '8px', 
-              backgroundColor: '#4CAF50',
-              color: 'white',
-              padding: '10px 15px'
-            }}
-          >
-            <i className='fa fa-database'></i> &nbsp;
-            Export
-          </Button>
-          <Button
-            aria-controls={settingsAnchorEl ? 'settings-menu' : undefined}
-            aria-haspopup="true"
-            onClick={handleSettingsMenuOpen}
-            style={{ 
-              marginLeft: '8px', 
-              backgroundColor: '#2196F3', 
-              color: 'white', 
-              padding: '10px 15px' 
-            }}
-          >
-            <i className='fa fa-cogs'></i> &nbsp;
-            Custom Data
-          </Button>
+      <Tooltip title={<span style={{ color: 'white' }}>Export</span>} arrow>
+        <Button
+          aria-controls={exportAnchorEl ? 'export-menu' : undefined}
+          aria-haspopup="true"
+          onClick={event => setExportAnchorEl(event.currentTarget)}
+          style={{
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            padding: '10px 15px',
+            margin: 0, // Remove margin for each button
+            borderRadius: '5px', // Set border radius to 5px for each button
+            flex: 1, // Fill available space equally
+          }}
+        >
+          <i className='fa fa-database'></i>&nbsp;
+        </Button>
+      </Tooltip>
+      &nbsp;
+
+
+      <Tooltip title={<span style={{ color: 'white' }}>Custom Data</span>} arrow>
+        <Button
+          aria-controls={settingsAnchorEl ? 'settings-menu' : undefined}
+          aria-haspopup="true"
+          onClick={handleSettingsMenuOpen}
+          style={{
+            backgroundColor: '#2196F3',
+            color: 'white',
+            padding: '10px 15px',
+            margin: 0, // Remove margin for each button
+            borderRadius: '5px', // Set border radius to 5px for each button
+            flex: 1, // Fill available space equally
+          }}
+        >
+          <i className='fa-solid fa-table'></i>&nbsp;
+        </Button>
+      </Tooltip>
+    </ButtonGroup>
           <Menu
             id="settings-menu"
             anchorEl={settingsAnchorEl}
