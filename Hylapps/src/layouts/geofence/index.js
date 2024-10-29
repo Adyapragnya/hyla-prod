@@ -14,6 +14,7 @@ import { ToastContainer, toast } from 'react-toastify'; // Import Toast componen
 import 'react-toastify/dist/ReactToastify.css'; // Import the CSS
 // import HistoryTable from "./HistoryTable";
 import GeofenceHistories from './GeofenceHistories';
+import Loader from "./Loader";
 import { AuthContext } from "../../AuthContext";
 
 function Geofence() {
@@ -22,6 +23,7 @@ function Geofence() {
   const [vesselEntries, setVesselEntries] = useState({});
   const [notifications, setNotifications] = useState([]);
   const { role, id } = useContext(AuthContext);
+  const [loading, setLoading]=useState(true);
 
 
   const handleRowClick = (vessel) => {
@@ -84,9 +86,11 @@ function Geofence() {
         }));
   
         setVessels(formattedData);
+        setLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching vessel data:", err);
+        setLoading(false);
       });
   }, [role, id]);
   
@@ -134,6 +138,9 @@ function Geofence() {
       window.removeEventListener("wheel", handleWheel);
     };
   }, []);
+  if (loading){
+    return<Loader/>;
+  }
 
   return (
     <DashboardLayout>

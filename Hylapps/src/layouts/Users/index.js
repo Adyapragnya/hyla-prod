@@ -42,6 +42,7 @@ import Slider from "layouts/dashboard/components/Slider";
 import MyMapComponent from "./MyMapComponent";
 import CreateUsers from './CreateUsers'; // If the file is named in lowercase
 import ViewUser from './ViewUser';
+import Loader from "./Loader";
 
 
 // Data
@@ -70,6 +71,7 @@ function Alerts() {
   const [selectedOptions, setSelectedOptions] = useState();
   const [vessels, setVessels] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] =useState(true);
 
   // Function triggered on selection
   function handleSelect(data) {
@@ -85,14 +87,21 @@ function Alerts() {
         // Log the response data to the console
         console.log(response.data);
         setVessels(response.data); // Set the fetched data to state
+        setLoading(false);
+
         
       })
       .catch((err) => {
         console.error('Error fetching vessel data:', err);
         setError(err.message); // Set error message
+        setLoading(false);
+
       });
   }, []);
 
+    if(loading) {
+      return <Loader />;
+    }
 
   return (
     <DashboardLayout>

@@ -15,12 +15,14 @@ import TextField from "@mui/material/TextField";
 import MyMapComponent from "./MyMapComponent";
 import Timeline from "./Timeline";
 import { AuthContext } from "../../AuthContext";
+import Loader from "./Loader";
 
 function Default() {
   const { vesselId } = useParams(); // Retrieve vesselId from URL
   const [vessels, setVessels] = useState([]);
   const [selectedVessel, setSelectedVessel] = useState(null);
   const { role, id } = useContext(AuthContext);
+  const [loading, setloading]=useState(true);
 
 
   const [events, setEvents] = useState([
@@ -60,6 +62,7 @@ function Default() {
           setSelectedVessel(vessel);
         } else if (filteredData.length > 0) {
           setSelectedVessel(filteredData[0]); // Set the first vessel as default
+          setloading(false);
         }
       })
       .catch(error => console.error("Error fetching vessels:", error));
@@ -112,7 +115,9 @@ const fetchNewEvent = () => {
   });
 };
 
-
+if (loading) {
+  return <Loader/>;
+}
 
   return (
     <DashboardLayout>

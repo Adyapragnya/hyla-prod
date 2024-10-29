@@ -53,6 +53,7 @@ import Tables from "layouts/tables";
 // import { Search } from "@mui/icons-material";
 
 import moment from 'moment';
+import Loader from "./Loader";
 // import DetailedStaticsCard from "./DetailedStatisticsCard";
 
 
@@ -71,6 +72,7 @@ function Organization() {
   const [selectedOptions, setSelectedOptions] = useState();
   const [vessels, setVessels] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading]= useState(true);
 
   // Function triggered on selection
   function handleSelect(data) {
@@ -89,11 +91,14 @@ function Organization() {
         // Log the response data to the console
         console.log(response.data);
         setVessels(response.data); // Set the fetched data to state
+        setLoading(false);
+
         
       })
       .catch((err) => {
         console.error('Error fetching vessel data:', err);
         setError(err.message); // Set error message
+        setLoading(false);
       });
   }, []);
 
@@ -101,6 +106,9 @@ function Organization() {
   return (
     <DashboardLayout>
     <DashboardNavbar />
+    {loading ? (
+      <Loader/>
+    ):(
     <ArgonBox py={0}>
       <Grid container spacing={3} mt={0}>
         <Grid item xs={12} md={6} lg={12} mr={3} container justifyContent="flex-end">
@@ -135,6 +143,7 @@ function Organization() {
         </Grid>
       </Grid>
     </ArgonBox>
+    )}
     <Footer />
   </DashboardLayout>
   );

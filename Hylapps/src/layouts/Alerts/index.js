@@ -8,6 +8,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import axios from "axios";
 import AlertForm from "./AlertForm";
+import Loader from "./Loader";
 import ViewAlert from "./ViewAlert"; // Import the ViewAlert component
 
 function Alerts() {
@@ -15,6 +16,7 @@ function Alerts() {
   const [showViewAlert, setShowViewAlert] = useState(false); // Track which component to show
   const [vessels, setVessels] = useState([]);
   const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     
@@ -30,9 +32,13 @@ function Alerts() {
           speed: vessel.AIS.SPEED || 0,
         }));
         setVessels(formattedData);
+        setLoading(false);
+
       })
       .catch((err) => {
         console.error("Error fetching vessel data:", err);
+        setLoading(false);
+
       });
      
   }, []);
@@ -68,8 +74,10 @@ function Alerts() {
 
         <Grid container mt={3}>
           <Grid item xs={12} md={0} lg={12} mt={3} mx={3}>
-            {/* Render either AlertForm or ViewAlert based on state */}
-            {showViewAlert ? <AlertForm  vessels={vessels}/> :  <ViewAlert />}
+            {loading ? <Loader/> :(
+            //* Render either AlertForm or ViewAlert based on state */
+            showViewAlert ? <AlertForm  vessels={vessels}/> :  <ViewAlert />
+          )}
           </Grid>
         </Grid>
       </ArgonBox>
