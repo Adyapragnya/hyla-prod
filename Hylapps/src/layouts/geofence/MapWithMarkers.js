@@ -47,8 +47,8 @@ const createPointIcon = (width, height) => {
 // Get icon size and type based on zoom level
 const getIconForZoom = (zoom) => {
   if (zoom > 23) return { width: 50, height: 120, type: 'extra-large' }; 
-  if (zoom > 20) return { width: 30, height: 80, type: 'extra-large' };
-  if (zoom > 17.75) return { width: 90, height: 280, type: 'large' };
+  if (zoom > 20) return { width: 60, height: 80, type: 'extra-large' };
+  if (zoom > 17.75) return { width: 60, height: 120, type: 'large' };
   if (zoom > 16.75) return { width: 45, height:120, type: 'large'  };
   if (zoom > 16) return { width: 35, height: 120, type: 'large'  };
   if (zoom > 15.75) return { width: 25, height: 70, type: 'large'  };
@@ -188,4 +188,4 @@ MapWithMarkers.propTypes = {
   }),
 };
 
-export default MapWithMarkers; 
+export default MapWithMarkers;

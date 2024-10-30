@@ -7,50 +7,37 @@ import axios from 'axios';
 import './MyMapComponent.css';
 
 const createCustomIcon = (heading, width, height, iconType) => {
-  let iconUrl;
-
-  switch (iconType) {
-    case 'small':
-      iconUrl = '/ship-popup.png';
-      break;
-    case 'medium':
-      iconUrl = '/ship-popup.png';
-      break;
-    case 'large':
-      iconUrl = '/ship-popup.png';
-      break;
-    case 'extra-large':
-      iconUrl = '/ship-popup.png';
-      break;
-    default:
-      iconUrl = '/ship-popup.png';
+  if (iconType === 'point') {
+    return L.divIcon({
+      className: 'custom-icon blinking-icon', // Added blinking class here
+      html: `<div style="width: ${width}px; height: ${height}px; background-color: red; border-radius: 50%;"></div>`,
+      iconSize: [width, height],
+    });
   }
 
   return L.divIcon({
     className: 'custom-icon',
     html: `<div style="transform: rotate(${heading}deg); width: ${width}px; height: ${height}px;">
-             <img src="${iconUrl}" style="width: 100%; height: 100%;" />
+             <img src="/ship-popup.png" style="width: 100%; height: 100%;" />
            </div>`,
     iconSize: [width, height],
   });
 };
 
 const getIconForZoom = (zoom, isSelected) => {
-  // Increase size if the vessel is selected
   const sizeMultiplier = isSelected ? 1.5 : 1;
-  if (zoom > 23) return { width: 40* sizeMultiplier, height: 70 * sizeMultiplier, type: 'extra-large' };
-  if (zoom > 15) return { width: 35 * sizeMultiplier, height: 60 * sizeMultiplier, type: 'large' };
-  if (zoom > 14.75) return { width: 35 * sizeMultiplier, height: 55* sizeMultiplier, type: 'medium' };
-  if (zoom > 13.75) return { width: 30 * sizeMultiplier, height: 45 * sizeMultiplier, type: 'medium' };
-  if (zoom > 12.75) return { width: 20 * sizeMultiplier, height: 40 * sizeMultiplier, type: 'small' };
-  if (zoom > 11.5) return { width: 20 * sizeMultiplier, height: 35 * sizeMultiplier, type: 'small' };
-  if (zoom > 10.75) return { width: 15 * sizeMultiplier, height: 30 * sizeMultiplier, type: 'small' };
-  if (zoom > 9.75) return { width: 15 * sizeMultiplier, height: 30 * sizeMultiplier, type: 'small' };
-  if (zoom > 8.75) return { width: 10 * sizeMultiplier, height: 20 * sizeMultiplier, type: 'small' };
-  if (zoom > 7) return { width: 10 * sizeMultiplier, height: 20* sizeMultiplier, type: 'small' };
-  if (zoom > 6) return { width: 10 * sizeMultiplier, height: 15 * sizeMultiplier, type: 'point' };
-  if (zoom > 5) return { width: 10 * sizeMultiplier, height: 15 * sizeMultiplier, type: 'point' };
-  return { width: 5 * sizeMultiplier, height: 10 * sizeMultiplier, type: 'point' };
+  if (zoom > 23) return { width: 35 * sizeMultiplier, height: 60 * sizeMultiplier, type: 'extra-large' };
+  if (zoom > 15) return { width: 25 * sizeMultiplier, height: 50 * sizeMultiplier, type: 'large' };
+  if (zoom > 14.75) return { width: 20 * sizeMultiplier, height: 45 * sizeMultiplier, type: 'medium' };
+  if (zoom > 13.75) return { width: 20 * sizeMultiplier, height: 35 * sizeMultiplier, type: 'small' };
+  if (zoom > 12.75) return { width: 17 * sizeMultiplier, height: 30 * sizeMultiplier, type: 'small' };
+  if (zoom > 11.5) return { width: 15 * sizeMultiplier, height: 25 * sizeMultiplier, type: 'small' };
+  if (zoom > 10.75) return { width: 15 * sizeMultiplier, height: 20 * sizeMultiplier, type: 'small' };
+  if (zoom > 9.75) return { width: 10 * sizeMultiplier, height: 15 * sizeMultiplier, type: 'small' };
+  if (zoom > 8.75) return { width: 7 * sizeMultiplier, height: 10 * sizeMultiplier, type: 'small' };
+  if (zoom > 7.75) return { width: 7 * sizeMultiplier, height: 7 * sizeMultiplier, type: 'point' };
+  if (zoom > 6) return { width: 5 * sizeMultiplier, height: 5 * sizeMultiplier, type: 'point' };
+  return { width: 4 * sizeMultiplier, height: 4 * sizeMultiplier, type: 'point' };
 };
 
 const MyMapComponent = ({ selectedVessel, style }) => {
@@ -76,7 +63,7 @@ const MyMapComponent = ({ selectedVessel, style }) => {
     if (map) {
       const updateIconSize = () => {
         const currentZoom = map.getZoom();
-        setIconSize(getIconForZoom(currentZoom, !!selectedVessel)); // Update based on zoom and vessel selection
+        setIconSize(getIconForZoom(currentZoom, !!selectedVessel));
       };
 
       updateIconSize();
@@ -97,7 +84,6 @@ const MyMapComponent = ({ selectedVessel, style }) => {
           duration: 1.5,
         });
       } else {
-        // If no vessel is selected, zoom out to level 2
         map.setView([0, 0], 2);
       }
     }
@@ -170,7 +156,7 @@ const MyMapComponent = ({ selectedVessel, style }) => {
           <MapContainer
             center={[0, 0]}
             minZoom={1.5}
-            zoom={6}
+            zoom={5}
             maxZoom={15}
             maxBounds={[[90, -180], [-90, 180]]}
             maxBoundsViscosity={8}
@@ -182,6 +168,17 @@ const MyMapComponent = ({ selectedVessel, style }) => {
               <Marker
                 position={[selectedVessel.AIS.LATITUDE, selectedVessel.AIS.LONGITUDE]}
                 icon={createCustomIcon(selectedVessel.AIS.HEADING, iconSize.width, iconSize.height, iconSize.type)}
+                eventHandlers={{
+                  click: (e) => {
+                    if (mapRef.current) {
+                      const map = mapRef.current;
+                      map.flyTo([selectedVessel.AIS.LATITUDE, selectedVessel.AIS.LONGITUDE], 15, {
+                        duration: 1.5,
+                      });
+                      e.target.openPopup();
+                    }
+                  },
+                }}
               >
                 <Popup>
                   Name: {selectedVessel.AIS.NAME || 'No name'}<br />

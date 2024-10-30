@@ -25,6 +25,8 @@ function Default() {
   const [loading, setloading]=useState(false);
 
 
+
+
   const [events, setEvents] = useState([
     { id: '1', title: 'Event 1', date: '2024-10-10', description: 'First event description' },
     { id: '2', title: 'Event 2', date: '2024-10-11', description: 'Second event description' },
@@ -230,3 +232,5 @@ if (loading) {
 }
 
 export default Default;
+
+
