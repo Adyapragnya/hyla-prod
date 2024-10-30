@@ -221,7 +221,7 @@ function DashCard({ onRefresh, onHighlight }) {
           )}
 
 <Grid item xs={12} lg={1.4} style={{ display: "flex", justifyContent: "flex-end" }}>
-    {showAddButton &&  role !== "guest" && (
+    {showAddButton &&   (
       <Button
         variant="contained"
         color="primary"
