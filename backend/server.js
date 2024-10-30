@@ -31,7 +31,7 @@ const AisSatPull = require('./models/AisSatPull');
 const TerrestrialGeofence = require('./models/TerrestrialGeofence');
 const customFieldsRoutes = require('./routes/customFields');
 const geolib = require('geolib'); 
-
+const EmailForAlerts = require('./models/EmailForAlerts');
 
 // Middleware to handle JSON requests
 app.use(express.json());
@@ -417,19 +417,20 @@ app.post('/api/add-combined-data', async (req, res) => {
         // to: 'hemanthsrinivas707@gmail.com, sales@adyapragnya.com,kdalvi@hylapps.com, abhishek.nair@hylapps.com',
         // Send an email notification to each recipient individually
       
+        
       
+       
       
-      
-      
-        for (const email of emailAddresses) {
+        
             const date = new Date();
             const options = { day: '2-digit', month: 'short', year: '2-digit' };
             const formattedDate = date.toLocaleDateString('en-GB', options).replace(',', '');
-
+            const document = await EmailForAlerts.findOne();
+            const emailvs =document.vesseladdemail;
             await transporter.sendMail({
 
                 from: 'admin@hylapps.com', // sender address
-                to: email, // individual receiver address
+                bcc: emailvs, // individual receiver address
                 subject: `HYLA Alert:${vesselName} added to tracking`, // Subject line
                 text: `${vesselName} has been added to your tracking system as of today ${formattedDate}. You will receive real-time updates on its location and movements.
 
@@ -444,7 +445,7 @@ HYLA Admin
 www.greenhyla.com
 `,
             });
-        }
+        
 
           // Send WhatsApp message
   //         const accessToken = 'EAAPFZBVZCcJpkBO1icFVEUAqZBZA6SOw614hQaLmsooJTLIdR2njKZCL9G7z9O2NSLZAZAHTAMGqhaFSlV0DdMyqZBhy13zkZCZBI6OO8hUp28c6sFmpNPAjv1V8bVOVisfGZCOXyJHrnZBxZBQAG9gGI7Wt6gUqI9Qs1pYwl2RmdZAWPwKNJ0i0NAg1nL8MtPZCfLDzLMW9mWaNjzLsZAsc7qUnLOZBWR0bZCYQkDBqegmngZD';
@@ -500,7 +501,7 @@ www.greenhyla.com
     // Mail options setup
     const mailOptions = {
       from:  'admin@hylapps.com', // Use the sender email from env variable
-      to: 'hemanthsrinivas707@gmail.com,kdalvi@hylapps.com, abhishek.nair@hylapps.com', // Ensure this is the recipient's email
+      bcc: 'hemanthsrinivas707@gmail.com,kdalvi@hylapps.com, abhishek.nair@hylapps.com', // Ensure this is the recipient's email
       subject: 'Vessel Status Update: Inside Vessels',
       text: `The following vessels are currently Inside:\n\n${vesselDetails}`,
     };
@@ -1006,9 +1007,12 @@ const checkVesselInGeofences = (vesselLat, vesselLng, polygonGeofences, circleGe
 
 // Helper functions to send entry and exit emails
 async function sendEntryEmail(vessel, geofenceName) {
+    const document = await EmailForAlerts.findOne();
+    const email =document.email;
+    
     const mailOptions = {
       from: 'admin@hylapps.com',
-      to: 'hemanthsrinivas707@gmail.com,tech.adyapragnya@gmail.com, sales@adyapragnya.com,kdalvi@hylapps.com, abhishek.nair@hylapps.com', 
+      bcc: email , 
       subject: `Vessel ${vessel.AIS.NAME} arrived ${geofenceName}`,
       text: `The vessel ${vessel.AIS.NAME} (IMO: ${vessel.AIS.IMO}) has arrived the geofence: ${geofenceName}.`
     };
@@ -1022,9 +1026,12 @@ async function sendEntryEmail(vessel, geofenceName) {
   }
   
   async function sendExitEmail(vessel, geofenceName) {
+    const document = await EmailForAlerts.findOne();
+    const email =document.email;
+    
     const mailOptions = {
       from: 'admin@hylapps.com',
-      to: ' tech.adyapragnya@gmail.com,kdalvi@hylapps.com, abhishek.nair@hylapps.com', // Specify the recipient's email address
+      bcc: email, 
       subject: `Vessel ${vessel.AIS.NAME} departured ${geofenceName}`,
       text: `The vessel ${vessel.AIS.NAME} (IMO: ${vessel.AIS.IMO}) has departured the geofence: ${geofenceName}.`
     };
