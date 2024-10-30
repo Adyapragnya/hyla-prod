@@ -22,7 +22,7 @@ function Default() {
   const [vessels, setVessels] = useState([]);
   const [selectedVessel, setSelectedVessel] = useState(null);
   const { role, id } = useContext(AuthContext);
-  const [loading, setloading]=useState(true);
+  const [loading, setloading]=useState(false);
 
 
   const [events, setEvents] = useState([
