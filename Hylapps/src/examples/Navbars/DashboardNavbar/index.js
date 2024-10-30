@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useContext } from "react";
 import { useLocation, Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import AppBar from "@mui/material/AppBar";
@@ -40,6 +40,7 @@ import DialogTitle from "@mui/material/DialogTitle";
 import Button from "@mui/material/Button";
 import TextField from "@mui/material/TextField";
 import axios from 'axios';
+import { AuthContext } from "../../../AuthContext";
 
 function DashboardNavbar({ absolute, light, isMini, showButton, dropdownOptions, vesselEntries }) {
   console.log(vesselEntries);
@@ -53,7 +54,9 @@ function DashboardNavbar({ absolute, light, isMini, showButton, dropdownOptions,
   const [filteredOptions, setFilteredOptions] = useState([]);
   const [satValues, setSatValues] = useState({});
   const [openSettingsDialog, setOpenSettingsDialog] = useState(false);
-
+  const { role, id } = useContext(AuthContext);
+  
+  
    // Fetch NAVSTAT intervals on mount
    useEffect(() => {
     const fetchSatIntervals = async () => {
@@ -287,6 +290,7 @@ function DashboardNavbar({ absolute, light, isMini, showButton, dropdownOptions,
                 <Icon>{miniSidenav ? "menu_open" : "menu"}</Icon>
               </IconButton>
             
+              {(role === "hyla admin" || role === "organization admin") && (
                 <IconButton
                   size="small"
                   color={light && transparentNavbar ? "white" : "dark"}
@@ -295,7 +299,9 @@ function DashboardNavbar({ absolute, light, isMini, showButton, dropdownOptions,
                 >
                   <Icon>settings</Icon>
                 </IconButton>
-              <IconButton
+                )}
+
+<IconButton
   size="small"
   color={light && transparentNavbar ? "white" : "dark"}
   sx={navbarIconButton}
