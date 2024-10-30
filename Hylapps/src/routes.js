@@ -63,14 +63,14 @@ const allRoutes = [
     icon: <ArgonBox component="i" color="success" fontSize="14px" className="fa fa-users" />,
     element: <CreateUsers />, // Changed from component to element
   },
-  {
-    type: "route",
-    name: "Reports",
-    key: "Reports",
-    route: "/HYLA",
-    icon: <ArgonBox component="i" color="success" fontSize="14px" className="fa-solid fa-chart-simple" />,
-    element: <Dashboardcopy />, // Changed from component to element
-  },
+  // {
+  //   type: "route",
+  //   name: "Reports",
+  //   key: "Reports",
+  //   route: "/HYLA",
+  //   icon: <ArgonBox component="i" color="success" fontSize="14px" className="fa-solid fa-chart-simple" />,
+  //   element: <Dashboardcopy />, // Changed from component to element
+  // },
   // {
   //   type: "route",
   //   name: "Managed Services",
@@ -104,7 +104,7 @@ const getFilteredRoutes = (role) => {
     return allRoutes;
   } else if (role === "organization admin") {
     // Return only specific routes for Organization Admin
-    return allRoutes.filter((route) => ["sign-in" ,"reset-password" , "HYLA", "dashboard", "geofence" , "Alerts", "Reports"].includes(route.key));
+    return allRoutes.filter((route) => ["sign-in" ,"reset-password" , "HYLA", "dashboard", "geofence" , "Alerts", "Create Users"].includes(route.key));
   } else if (role === "organizational user") {
     // Return only specific routes for Organization User
     return allRoutes.filter((route) => ["sign-in" ,"reset-password" , "HYLA", "dashboard", "geofence"].includes(route.key));

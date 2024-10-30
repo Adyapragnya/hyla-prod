@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Grid from "@mui/material/Grid";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import ArgonBox from "components/ArgonBox";
 import Button from "@mui/material/Button";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -10,6 +10,7 @@ import axios from "axios";
 import AlertForm from "./AlertForm";
 import Loader from "./Loader";
 import ViewAlert from "./ViewAlert"; // Import the ViewAlert component
+import { AuthContext } from "../../AuthContext";
 
 function Alerts() {
   const navigate = useNavigate(); // Initialize navigate function
@@ -17,6 +18,7 @@ function Alerts() {
   const [vessels, setVessels] = useState([]);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { role, id } = useContext(AuthContext);
 
   useEffect(() => {
     
