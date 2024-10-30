@@ -38,18 +38,18 @@ const createCustomIcon = (heading, width, height, iconType) => {
 const getIconForZoom = (zoom, isSelected) => {
   // Increase size if the vessel is selected
   const sizeMultiplier = isSelected ? 1.5 : 1;
-  if (zoom > 23) return { width: 50 * sizeMultiplier, height: 120 * sizeMultiplier, type: 'extra-large' };
-  if (zoom > 15) return { width: 40 * sizeMultiplier, height: 100 * sizeMultiplier, type: 'large' };
-  if (zoom > 14.75) return { width: 40 * sizeMultiplier, height: 90 * sizeMultiplier, type: 'medium' };
-  if (zoom > 13.75) return { width: 30 * sizeMultiplier, height: 70 * sizeMultiplier, type: 'medium' };
-  if (zoom > 12.75) return { width: 20 * sizeMultiplier, height: 50 * sizeMultiplier, type: 'small' };
+  if (zoom > 23) return { width: 40* sizeMultiplier, height: 70 * sizeMultiplier, type: 'extra-large' };
+  if (zoom > 15) return { width: 35 * sizeMultiplier, height: 60 * sizeMultiplier, type: 'large' };
+  if (zoom > 14.75) return { width: 35 * sizeMultiplier, height: 55* sizeMultiplier, type: 'medium' };
+  if (zoom > 13.75) return { width: 30 * sizeMultiplier, height: 45 * sizeMultiplier, type: 'medium' };
+  if (zoom > 12.75) return { width: 20 * sizeMultiplier, height: 40 * sizeMultiplier, type: 'small' };
   if (zoom > 11.5) return { width: 20 * sizeMultiplier, height: 35 * sizeMultiplier, type: 'small' };
   if (zoom > 10.75) return { width: 15 * sizeMultiplier, height: 30 * sizeMultiplier, type: 'small' };
   if (zoom > 9.75) return { width: 15 * sizeMultiplier, height: 30 * sizeMultiplier, type: 'small' };
   if (zoom > 8.75) return { width: 10 * sizeMultiplier, height: 20 * sizeMultiplier, type: 'small' };
   if (zoom > 7) return { width: 10 * sizeMultiplier, height: 20* sizeMultiplier, type: 'small' };
-  if (zoom > 6) return { width: 10 * sizeMultiplier, height: 15 * sizeMultiplier, type: 'small' };
   if (zoom > 6) return { width: 10 * sizeMultiplier, height: 15 * sizeMultiplier, type: 'point' };
+  if (zoom > 5) return { width: 10 * sizeMultiplier, height: 15 * sizeMultiplier, type: 'point' };
   return { width: 5 * sizeMultiplier, height: 10 * sizeMultiplier, type: 'point' };
 };
 
