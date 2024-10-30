@@ -1,143 +1,137 @@
 import React, { useEffect, useState } from 'react';
 import PropTypes from 'prop-types';
 import { FaPlay, FaPause, FaChevronRight, FaChevronLeft } from 'react-icons/fa';
+import axios from 'axios';
 import './Timeline.css';
-import axios from 'axios'; // Import axios for making API requests
 
 const Timeline = ({ initialEvents, fetchNewEvent, selectedVessel }) => {
-    const [events, setEvents] = useState(initialEvents); // Initialize with initialEvents
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [isPlaying, setIsPlaying] = useState(false);
-    const [intervalId, setIntervalId] = useState(null);
-    const [alerts, setAlerts] = useState([]); // State to store alerts from the API
+  const [events, setEvents] = useState(initialEvents);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [intervalId, setIntervalId] = useState(null);
 
-    // Fetch alerts from the backend and filter them based on selected vessel's name
-    useEffect(() => {
-        const fetchAlerts = async () => {
-            try {
+  // Fetch and filter vessel history based on the selected vessel
+  useEffect(() => {
+    if (!selectedVessel) return;
 
-                const baseURL = process.env.REACT_APP_API_BASE_URL;
-               
-                const response = await axios.get(`${baseURL}/api/alerts/`); // Replace with your API endpoint
-                const allAlerts = response.data;
+    const fetchVesselHistory = async () => {
+      try {
+        const baseURL = process.env.REACT_APP_API_BASE_URL;
+        const response = await axios.get(`${baseURL}/api/get-vessel-histories`);
+        const vesselData = response.data.find(
+          (vessel) => vessel.vesselName === selectedVessel.AIS.NAME
+        );
 
-                if (selectedVessel && selectedVessel.AIS && selectedVessel.AIS.NAME) {
-                    const vesselName = selectedVessel.AIS.NAME;
+        if (vesselData && vesselData.history) {
+          // Filter history entries where geofenceFlag is "Inside"
+          const filteredHistory = vesselData.history.filter(
+            (entry) => entry.geofenceFlag === 'Inside'
+          );
 
-                    // Filter alerts based on vesselSelected field
-                    const filteredAlerts = allAlerts.filter(alert =>
-                        alert.vesselSelected.includes(vesselName)
-                    );
+          // Use a Set to track unique geofenceName-entryTime combinations
+          const uniqueEvents = new Set();
+          const formattedHistory = filteredHistory
+            .filter((entry) => {
+              const uniqueKey = `${entry.geofenceName}-${entry.entryTime}`;
+              if (uniqueEvents.has(uniqueKey)) return false;
+              uniqueEvents.add(uniqueKey);
+              return true;
+            })
+            .map((entry, index) => ({
+              id: entry._id.$oid || index,
+              geofenceName: entry.geofenceName,
+              entryTime: entry.entryTime,
+              exitTime: entry.exitTime,
+              timestamp: entry.TIMESTAMP,
+            }));
 
-                    console.log('Filtered Alerts:', filteredAlerts);
-                    setAlerts(filteredAlerts);
-                }
-            } catch (error) {
-                console.error('Error fetching alerts:', error);
-            }
-        };
-
-        fetchAlerts(); // Fetch alerts when the component mounts or when the selected vessel changes
-    }, [selectedVessel]);
-
-    // Function to go to the next event
-    const nextEvent = () => {
-        setCurrentIndex((prevIndex) => (prevIndex + 1) % events.length);
-    };
-
-    // Function to go to the previous event
-    const prevEvent = () => {
-        setCurrentIndex((prevIndex) => (prevIndex - 1 + events.length) % events.length);
-    };
-
-    const playSlideshow = () => {
-        if (!isPlaying) {
-            const id = setInterval(nextEvent, 2000); // Move to the next event every 2 seconds
-            setIntervalId(id);
-            setIsPlaying(true);
+          setEvents(formattedHistory);
+        } else {
+          setEvents([]); // Clear events if no data matches
         }
+      } catch (error) {
+        console.error('Error fetching vessel history:', error);
+      }
     };
 
-    const stopSlideshow = () => {
-        clearInterval(intervalId);
-        setIsPlaying(false);
-    };
+    fetchVesselHistory();
+  }, [selectedVessel]);
 
-    useEffect(() => {
-        console.log(selectedVessel); // Log the current vessel
-    }, [selectedVessel]);
+  const nextEvent = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % events.length);
+  };
 
-    // Clear interval on unmount or when intervalId changes
-    useEffect(() => {
-        return () => clearInterval(intervalId);
-    }, [intervalId]);
+  const prevEvent = () => {
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + events.length) % events.length);
+  };
 
-    // Poll for new events every 5 seconds (or any interval)
-    useEffect(() => {
-        const pollForNewEvents = async () => {
-            const newEvent = await fetchNewEvent(); // Fetch new event from the function passed as a prop
+  const playSlideshow = () => {
+    if (!isPlaying) {
+      const id = setInterval(nextEvent, 2000);
+      setIntervalId(id);
+      setIsPlaying(true);
+    }
+  };
 
-            // If new event exists and is not a duplicate, add it to the timeline
-            if (newEvent && !events.some(event => event.id === newEvent.id)) {
-                setEvents((prevEvents) => [...prevEvents, newEvent]);
-            }
-        };
+  const stopSlideshow = () => {
+    clearInterval(intervalId);
+    setIsPlaying(false);
+  };
 
-        // Poll every 5 seconds for new events
-        const pollInterval = setInterval(pollForNewEvents, 5000); // Adjust time as necessary
+  useEffect(() => {
+    return () => clearInterval(intervalId);
+  }, [intervalId]);
 
-        return () => clearInterval(pollInterval); // Clean up on unmount
-    }, [events, fetchNewEvent]);
-
-    return (
-        <div className="timeline" style={{height:"100px",paddingTop:"5px"}}>
-            <div className="timeline-controls" style={{ marginTop: "-50px" }}>
-                <button onClick={prevEvent} disabled={isPlaying} title="Previous">
-                    <FaChevronLeft />
-                </button>
-                <button onClick={nextEvent} disabled={isPlaying} title="Next">
-                    <FaChevronRight />
-                </button>
-                <button onClick={isPlaying ? stopSlideshow : playSlideshow} title={isPlaying ? 'Stop' : 'Play'}>
-                    {isPlaying ? <FaPause /> : <FaPlay />}
-                </button>
-            </div>
-
-            {alerts.length > 0 ? (
-                alerts.map((alert, index) => (
-                    <div key={index} className="timeline-item" style={{ opacity: currentIndex === index ? 1 : 0.5, marginTop: "-5px" }}>
-                        <div className="timeline-marker" />
-                        <div className="timeline-content">
-                            <h3 className="timeline-title">{alert.geofence}</h3>
-                            {/* <span className="timeline-date">Message: {alert.message} </span> */}
-                            {/* {/* <span className="timeline-date"> From: {alert.fromDate}</span> */}
-                            <span className="timeline-date"> {alert.toDate}</span>
-                            {/* <span className="timeline-date">{new Date(alert.createdAt).toLocaleString()}</span> */}
-                        </div>
-                    </div>
-                ))
-            ) : (
-                <p>No alerts for the selected vessel.</p>
-            )}
-        </div>
-    );
+  return (
+    <div className="timeline" style={{ height: '100px', paddingTop: '5px'}}>
+      <div className="timeline-controls" style={{ marginTop: '-50px' }}>
+        <button onClick={prevEvent} disabled={isPlaying} title="Previous">
+          <FaChevronLeft />
+        </button>
+        <button onClick={nextEvent} disabled={isPlaying} title="Next">
+          <FaChevronRight />
+        </button>
+        <button onClick={isPlaying ? stopSlideshow : playSlideshow} title={isPlaying ? 'Stop' : 'Play'}>
+          {isPlaying ? <FaPause /> : <FaPlay />}
+        </button>
+      </div>
+      {events.length > 0 ? (
+        events.map((event, index) => (
+          <div
+            key={event.id}
+            className="timeline-item"
+            style={{ opacity: currentIndex === index ? 1 : 0.5, marginTop: '-5px' }}
+          >
+            <div className="timeline-marker" />
+            <div className="timeline-content">
+              <h3 className="timeline-title">Geofence Name:{event.geofenceName || 'Unnamed Geofence'}</h3>
+              <span className="timeline-date">Entry Time: {event.entryTime || 'N/A'}</span>
+              <span className="timeline-date">Exit Time: {event.exitTime || 'N/A'}</span>
+               </div>
+          </div>
+        ))
+      ) : (
+        <p>No timeline events for the selected vessel.</p>
+      )}
+    </div>
+  );
 };
 
 Timeline.propTypes = {
-    selectedVessel: PropTypes.shape({
-        AIS: PropTypes.shape({
-            NAME: PropTypes.string.isRequired
-        }).isRequired
-    }),
-    initialEvents: PropTypes.arrayOf(
-        PropTypes.shape({
-            id: PropTypes.string.isRequired,
-            title: PropTypes.string.isRequired,
-            date: PropTypes.string.isRequired,
-            description: PropTypes.string.isRequired,
-        })
-    ).isRequired,
-    fetchNewEvent: PropTypes.func.isRequired, // Function to fetch new event
+  selectedVessel: PropTypes.shape({
+    AIS: PropTypes.shape({
+      NAME: PropTypes.string.isRequired,
+    }).isRequired,
+  }),
+  initialEvents: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.string.isRequired,
+      title: PropTypes.string.isRequired,
+      date: PropTypes.string.isRequired,
+      description: PropTypes.string.isRequired,
+    })
+  ).isRequired,
+  fetchNewEvent: PropTypes.func.isRequired,
 };
 
 export default Timeline;
