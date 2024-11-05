@@ -107,11 +107,11 @@ const getFilteredRoutes = (role) => {
     return allRoutes.filter((route) => ["sign-in" ,"reset-password" , "HYLA", "dashboard", "geofence" , "Alerts", "Create Users"].includes(route.key));
   } else if (role === "organizational user") {
     // Return only specific routes for Organization User
-    return allRoutes.filter((route) => ["sign-in" ,"reset-password" , "HYLA", "dashboard", "geofence"].includes(route.key));
+    return allRoutes.filter((route) => ["sign-in" ,"reset-password" , "HYLA", "dashboard"].includes(route.key));
   } 
   else if (role === "guest") {
     // Return empty array or a default route for guest users
-    return allRoutes.filter((route) => ["sign-in" ,"reset-password" , "HYLA", "dashboard", "geofence"].includes(route.key));
+    return allRoutes.filter((route) => ["sign-in" ,"reset-password" , "HYLA", "dashboard"].includes(route.key));
   } 
   
   else  {
