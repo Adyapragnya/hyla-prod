@@ -1014,7 +1014,7 @@ async function sendEntryEmail(vessel, geofenceName) {
       from: 'admin@hylapps.com',
       bcc: email , 
       subject: `Vessel ${vessel.AIS.NAME} arrived ${geofenceName}`,
-      text: `The vessel ${vessel.AIS.NAME} (IMO: ${vessel.AIS.IMO}) has arrived the geofence: ${geofenceName}.`
+      text: `The vessel ${vessel.AIS.NAME} (IMO: ${vessel.AIS.IMO}) has arrived : ${geofenceName}.`
     };
   
     try {
@@ -1032,8 +1032,8 @@ async function sendEntryEmail(vessel, geofenceName) {
     const mailOptions = {
       from: 'admin@hylapps.com',
       bcc: email, 
-      subject: `Vessel ${vessel.AIS.NAME} departured ${geofenceName}`,
-      text: `The vessel ${vessel.AIS.NAME} (IMO: ${vessel.AIS.IMO}) has departured the geofence: ${geofenceName}.`
+      subject: `Vessel ${vessel.AIS.NAME} departed ${geofenceName}`,
+      text: `The vessel ${vessel.AIS.NAME} (IMO: ${vessel.AIS.IMO}) has departed: ${geofenceName}.`
     };
   
     try {
