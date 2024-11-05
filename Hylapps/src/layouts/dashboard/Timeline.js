@@ -104,7 +104,7 @@ const Timeline = ({ initialEvents, fetchNewEvent, selectedVessel }) => {
           >
             <div className="timeline-marker" />
             <div className="timeline-content">
-              <h3 className="timeline-title">Geofence Name:{event.geofenceName || 'Unnamed Geofence'}</h3>
+              <h3 className="timeline-title">{event.geofenceName || 'Unnamed Geofence'}</h3>
               <span className="timeline-date">Entry Time: {event.entryTime || 'N/A'}</span>
               <span className="timeline-date">Exit Time: {event.exitTime || 'N/A'}</span>
                </div>
