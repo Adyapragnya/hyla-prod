@@ -746,7 +746,7 @@ app.get('/api/sat-intervals', async (req, res) => {
                               LONGITUDE: apiData.LONGITUDE,
                               TIMESTAMP: apiData.TIMESTAMP,
                               COURSE: apiData.COURSE,
-                              SPEED: apiData.COURSE,
+                              SPEED: apiData.SPEED,
                               HEADING: apiData.HEADING,
                               NAVSTAT: apiData.NAVSTAT,
                               CALLSIGN: apiData.CALLSIGN,
