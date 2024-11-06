@@ -26,7 +26,7 @@ const createCustomIcon = (heading) => {
 const createPointIcon = () => {
   return L.divIcon({
     className: 'point-icon',
-    html: '<div style="width: 5px; height: 5px; background-color: red; border-radius: 50%;"></div>',
+    html: '<div style="width: 12px; height: 12px; background-color: red; border-radius: 50%;"></div>',
     iconSize: [10, 10],
     
   });
